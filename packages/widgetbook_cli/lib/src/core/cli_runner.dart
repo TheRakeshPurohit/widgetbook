@@ -6,7 +6,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 import '../../metadata.dart';
-import '../commands/publish.dart';
+import '../commands/cloud.dart';
 import '../commands/upgrade.dart';
 import '../utils/utils.dart';
 import 'context.dart';
@@ -34,9 +34,8 @@ class CliRunner extends CommandRunner<int> {
     );
 
     addCommand(
-      PublishCommand(
+      CloudCommand(
         context: context,
-        logger: _logger,
       ),
     );
   }

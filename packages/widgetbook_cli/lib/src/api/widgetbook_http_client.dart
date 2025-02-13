@@ -1,49 +1,42 @@
 import 'package:dio/dio.dart';
 
-import '../core/core.dart';
 import '../utils/utils.dart';
-import 'models/build_request.dart';
-import 'models/build_response.dart';
-import 'models/review_request.dart';
-import 'models/review_response.dart';
+import 'models/build_draft_request.dart';
+import 'models/build_draft_response.dart';
+import 'models/build_ready_request.dart';
+import 'models/build_ready_response.dart';
 import 'models/versions_metadata.dart';
+
+const BASE_API_URL = 'https://api.widgetbook.io/';
 
 /// HTTP client to connect to the Widgetbook Cloud backend
 class WidgetbookHttpClient {
   WidgetbookHttpClient({
     Dio? client,
-    required Environment environment,
   }) : client = client ??
             Dio(
               BaseOptions(
-                baseUrl: environment.apiUrl,
+                baseUrl: BASE_API_URL,
                 contentType: Headers.jsonContentType,
               ),
             );
 
   final Dio client;
 
-  /// Sends review data to the Widgetbook Cloud backend.
-  Future<ReviewResponse> uploadReview(
+  Future<BuildDraftResponse> createBuildDraft(
     VersionsMetadata? versions,
-    ReviewRequest request,
+    BuildDraftRequest request,
   ) async {
-    if (request.useCases.isEmpty) {
-      throw WidgetbookApiException(
-        message: 'No use cases to upload',
-      );
-    }
-
     try {
       final response = await client.post<Map<String, dynamic>>(
-        '/reviews',
+        'v2/builds/draft',
         data: request.toJson(),
         options: Options(
           headers: versions?.toHeaders(),
         ),
       );
 
-      return ReviewResponse.fromJson(response.data!);
+      return BuildDraftResponse.fromJson(response.data!);
     } catch (e) {
       final message = e is DioException //
           ? e.response?.toString()
@@ -55,22 +48,16 @@ class WidgetbookHttpClient {
     }
   }
 
-  /// Uploads the build .zip file to the Widgetbook Cloud backend.
-  Future<BuildResponse> uploadBuild(
-    VersionsMetadata? versions,
-    BuildRequest request,
+  Future<BuildReadyResponse> submitBuildDraft(
+    BuildReadyRequest request,
   ) async {
     try {
-      final formData = await request.toFormData();
       final response = await client.post<Map<String, dynamic>>(
-        '/builds/deploy',
-        data: formData,
-        options: Options(
-          headers: versions?.toHeaders(),
-        ),
+        'v2/builds/submit',
+        data: request.toJson(),
       );
 
-      return BuildResponse.fromJson(response.data!);
+      return BuildReadyResponse.fromJson(response.data!);
     } catch (e) {
       final message = e is DioException //
           ? e.response?.toString()

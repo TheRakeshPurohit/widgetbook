@@ -14,7 +14,7 @@ class ListField<T> extends Field<T> {
     required this.values,
     required super.initialValue,
     this.labelBuilder = defaultLabelBuilder,
-    @deprecated super.onChanged,
+    @Deprecated('Fields should not be aware of their context') super.onChanged,
   }) : super(
           type: FieldType.list,
           codec: FieldCodec(
@@ -35,10 +35,15 @@ class ListField<T> extends Field<T> {
   @override
   Widget toWidget(BuildContext context, String group, T? value) {
     return DropdownMenu<T>(
+      expandedInsets: EdgeInsets.zero,
       trailingIcon: const Icon(Icons.keyboard_arrow_down_rounded),
       selectedTrailingIcon: const Icon(Icons.keyboard_arrow_up_rounded),
-      initialSelection: value ?? values.first,
-      onSelected: (value) => updateField(context, group, value!),
+      initialSelection: value,
+      onSelected: (value) {
+        if (value != null) {
+          updateField(context, group, value);
+        }
+      },
       dropdownMenuEntries: values
           .map(
             (value) => DropdownMenuEntry(
